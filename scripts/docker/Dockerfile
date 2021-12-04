@@ -1,8 +1,6 @@
 FROM maven
 
-COPY .git /home/.git
+COPY . /home/
 WORKDIR /home
-RUN git reset --hard
-RUN ./scripts/run_tests.sh
 
 
