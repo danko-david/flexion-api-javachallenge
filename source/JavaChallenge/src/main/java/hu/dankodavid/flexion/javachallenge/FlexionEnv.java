@@ -17,7 +17,7 @@ public class FlexionEnv
 		(
 			"flexion.javachallenge.dev_id",
 			"FLEXION_JAVACHALLENGE_DEV_ID",
-			"test"
+			null
 		);
 	}
 	
@@ -33,6 +33,11 @@ public class FlexionEnv
 		if(null != ret)
 		{
 			return ret;
+		}
+		
+		if(null == defVal)
+		{
+			throw new IllegalStateException("Specify required environtment variable `"+envVar+"` or property `"+propVar+"`");
 		}
 		
 		return defVal;

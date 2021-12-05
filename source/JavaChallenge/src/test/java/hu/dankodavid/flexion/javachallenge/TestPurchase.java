@@ -1,7 +1,9 @@
 package hu.dankodavid.flexion.javachallenge;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -21,32 +23,6 @@ public class TestPurchase
 {
 	/**
 	 * Runs the integration tests, provided with the documentation.
-	 * 
-	 * Note:
-	 * This kind of library distribution (I mean sending/downloading jar files)
-	 * it deprecated. The main reason: it's scales bad and difficult to integrate 
-	 * 1) Binary files are not for git repos: 
-	 *   As the project evolves and libraries getting updated, old jar files
-	 *   become unwanted element. But because of git, it's takes space as old
-	 *   commit files.
-	 * 2) If JAR not stored in the repository, it cause difficulties to manage
-	 *   the project in a CI software like jenkins.
-	 * 3) When tests become more complex, and start picking up dependencies.
-	 *   Well, managing dependecines by downloading set of jar files is a way
-	 *   to hell. 
-	 * 
-	 * What to do instead:
-	 * 	Create a maven repository and publish dependencies there.
-	 * It doesn't require though infrastructure, see my own maven repository:
-	 * https://maven.javaexperience.eu/
-	 * 
-	 * Benefits:
-	 * 1) Easy to manage previous versions of test without polluting git.
-	 * 2) Common library utility classes, source codes, heavy resource files and
-	 *    even tests cases can be shared using a maven repository.
-	 * 3) Easy to integrate. Just add a <repository> entry, reference the
-	 *    utility you want to use, and reference a test set version you want to satisfy.
-	 *    This works good with Maven CLI and with Jenkins as well.
 	 * */
 	@Test
 	public void testExternalIntegration()
@@ -81,6 +57,7 @@ public class TestPurchase
 	 * If the application is written well, and issues are rare, it might hard to catch
 	 * the issue. Method returns silently as it like to succeed, but it don't. 
 	 * */
+	@Test
 	public void test_fail_consumeNonexistingItem()
 	{
 		assertThrows(Conflict.class, ()->
@@ -105,5 +82,32 @@ public class TestPurchase
 	{
 		Purchase p = FlexionEnv.getConfiguredPurchaseConnector().buy(itemId);
 		assertEquals(p.getItemId(), itemId);
+	}
+	
+	@Test
+	public void test_fail_buyNullItem()
+	{
+		assertThrows(IllegalArgumentException.class, ()->
+		{
+			FlexionEnv.getConfiguredPurchaseConnector().buy(null);
+		});
+	}
+	
+	@Test
+	public void test_fail_doubleConsume()
+	{
+		PurchaseRestConnector conn = FlexionEnv.getConfiguredPurchaseConnector();
+		
+		Purchase item = conn.buy("testItem");
+		assertFalse(item.getConsumed());
+		conn.consume(item);
+		
+		Purchase refreshed = conn.getFreshPurchase(item);
+		assertTrue(refreshed.getConsumed());
+		
+		assertThrows(Conflict.class, ()->
+		{
+			conn.consume(refreshed);
+		});
 	}
 }

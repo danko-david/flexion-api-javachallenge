@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.util.Assert;
 
 import com.flexionmobile.codingchallenge.integration.Integration;
 import com.flexionmobile.codingchallenge.integration.Purchase;
@@ -28,6 +29,7 @@ public class PurchaseRestConnector implements Integration
 	@Override
 	public Purchase buy(String itemId)
 	{
+		Assert.notNull(itemId, "ItemId may not null");
 		return PurchaseItem.parse(RestTools.transactionJsonObject(restEndpoint+"/"+developerId+"/buy/"+URLEncoder.encode(itemId, Charset.defaultCharset()), HttpMethod.POST));
 	}
 
@@ -45,5 +47,10 @@ public class PurchaseRestConnector implements Integration
 	public void consume(Purchase var1)
 	{
 		RestTools.transactionRaw(restEndpoint+"/"+developerId+"/consume/"+var1.getId(), HttpMethod.POST);
+	}
+	
+	public Purchase getFreshPurchase(Purchase p)
+	{
+		return PurchaseItem.findById(getPurchases(), p.getId());
 	}
 }

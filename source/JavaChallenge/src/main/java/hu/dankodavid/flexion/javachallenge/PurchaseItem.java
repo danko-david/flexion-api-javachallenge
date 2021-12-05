@@ -61,4 +61,17 @@ public class PurchaseItem implements Purchase
 		}
 		return ret;
 	}
+	
+	public static <T extends Purchase > T findById(List<T> purchases, String id)
+	{
+		for(T p:purchases)
+		{
+			if(id.equals(p.getId()))
+			{
+				return p;
+			}
+		}
+		
+		return null;
+	}
 }
